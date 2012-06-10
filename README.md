@@ -14,3 +14,6 @@ Przed przystąpieniem do załadowania danych do kolekcji mongo proponuję urucho
 
 5. Całość jest dostępna pod adresem:
 http://localhost:5987/miasta/_design/default/_list/main/miasta/ Do poprawnego działania wymagane jest połączenie z internetem (pobranie bibliotek d3js, jquery)
+
+Uruchomiłem też działającą aplikację pod adresem
+https://mmackows-nosql.iriscouch.com/miasta/_design/default/_list/statystyki/miasta/
