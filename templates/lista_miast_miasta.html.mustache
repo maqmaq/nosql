@@ -1,0 +1,147 @@
+<div id="maincolumn">
+    <p>Aby wybrać konkretne miasto wybierz pozycję z listy rozwijanej ...</p>
+    <div class="city-select">
+        <form method="GET">
+            <select name="cityselect" onchange='this.form.submit()'>
+                {{#miasta}}
+                {{#value}}
+                <option value="{{ id }}">{{ nazwa }}</option>
+                {{/value}}
+                {{/miasta}}
+            </select>
+        </form>
+
+    </div>
+    <p>... lub kliknij punkt na mapie. Po najechaniu na punkt zobaczysz podpowiedź.</p>
+    <div class="city-map" style="width: 300px; height: 278x; background-image: url('/miasta/_design/default/mapa.png'); background-repeat:no-repeat;
+"></div>
+    <!--
+    <div class="city-list-box">
+        <ul class="city-list">
+            {{#miasta}}
+            {{#value}}
+            <li class="city-list-position"><a href="/miasta/_design/default/_show/miasto/{{ id }}" title='{{ nazwa }}'>{{ nazwa }}</a></li>
+            {{/value}}
+            {{/miasta}}
+        </ul>
+    </div>
+    -->
+</div>
+{{#redirect}}
+<script type="text/javascript">
+    window.location.href = '{{ redirect }}';
+</script>
+{{/redirect}}
+<script type="text/javascript">
+                        
+    d3.json("/miasta/_design/default/_list/top/miasta/?myLimit=100", function(json) {
+        var data = parseData(json); 
+        
+        var max_n = zmienJednostke("54°50′"); //miejscowosc jastrzębia góra
+        var max_s = zmienJednostke("49°00′"); //szczyt opołonek
+        var max_w = zmienJednostke("14°07′"); // kolano odry kolo osinowa dolnego
+        var max_e = zmienJednostke("24°08′"); // kolano bugu w zosinie
+
+        var data_max_x = max_e,
+        data_max_y = max_n,
+        data_max_z = get(data, 'value', '>', 0),
+        data_min_x = max_w,
+        data_min_y = max_s,
+        data_min_z = get(data, 'value', '<', data_max_z),
+        width = 300,
+        height = 278;
+        
+        var top_margin = 5,
+        bottom_margin = 4,
+        left_margin = 12,
+        right_margin = 12;
+            
+        var x = d3.scale.linear()
+        .domain([data_min_x, data_max_x])
+        .range([left_margin, width - right_margin]),
+            
+        y = d3.scale.linear()
+        .domain([data_min_y, data_max_y])
+        .range([top_margin, height - bottom_margin]),
+                
+        z = d3.scale.linear()
+        .domain([data_min_z, data_max_z])
+        .range([3, 20]);
+              
+        var vis = d3.select("div.city-map")
+        .append("svg:svg")
+        .attr("width", width)
+        .attr("height", height);
+                
+        var circle = vis.selectAll("circle")
+        .data(data)
+        .enter()
+        .append('circle')
+        .attr("cx", function(d) {
+            return left_margin - right_margin + x(d.gps_dlugosc);
+        })
+        .attr("cy", function(d){
+            return height - y(d.gps_szerokosc) + top_margin - bottom_margin;
+        })
+        .attr("r", function(d) {
+            return z(d.value);
+        })
+        .on('click', function(d) {
+           var link = '/miasta/_design/default/_show/miasto/' + d.id;
+           window.location.href = link;
+        })
+        .on('mouseover', function(d) {
+            d3.select(this).style("stroke-width", 2).style('stroke', 'red');
+        })
+        .on('mouseout', function(d) {
+            d3.select(this).style("stroke-width", 1).style('stroke', 'black');
+        });
+        
+        
+        $('svg circle').tipsy({ 
+            gravity: 'w', 
+            html: true, 
+            title: function() {
+                var d = this.__data__;
+                return d.label; 
+            }
+        });
+                    
+    });
+            
+    function parseData(json) {
+                
+        var length = json.length;
+        var array_out = [];
+        var element = false;
+        for (var i = 0; i < length; i++) {
+            element = new Object();
+            element.id = json[i].value._id;
+            element.label = json[i].value.nazwa;   
+            element.value = json[i].value.ludnosc;
+            element.gps_szerokosc = zmienJednostke(json[i].value.szerokosc);
+            element.gps_dlugosc = zmienJednostke(json[i].value.dlugosc);
+            element.link = json[i].value.link;
+            array_out.push(element);
+        }
+        return array_out;
+    }
+            
+    //param = property w obiekcie
+    //znak = < lub >
+    //to niestety evalem
+    function get(data, param, znak, startingValue) {
+                
+        var length = data.length;
+        var str = '';
+        var max = startingValue;
+        for (var i = 0; i < length; i++) {
+            str ='var value = parseFloat(data[i].' + param + ');'; 
+            eval(str);
+            str = 'max = (value ' + znak + 'max) ? value : max;';
+            eval(str);
+        }
+        return max;
+    }
+                
+</script>

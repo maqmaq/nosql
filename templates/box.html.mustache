@@ -1,0 +1,104 @@
+<div class="box" style="text-align: center;">
+    <div id="clock" style="margin-left: auto; margin-right: auto; ">  
+    </div>
+
+    <script type="text/javascript">
+        
+        var w = 150,
+        h = 150,
+        promien = (Math.min(w, h) / (2 * 1.2)),
+        promien2 = (Math.min(w, h) / (2 * 1.21)),
+        r = (Math.min(w, h) / (2 * 1.4)) * 0.8,
+        s = .09,
+        fsec = d3.time.format("%S s"),
+        fsecS = d3.time.format("%S"),
+        fmin = d3.time.format("%M m"),
+        fminS = d3.time.format("%M"),
+        fhou = d3.time.format("%H h"),
+        fhouS = d3.time.format("%H");
+                      
+        var arc = d3.svg.arc()
+        .startAngle(0)
+        .endAngle(function(d) { return promien * 2 * Math.PI; })
+        .innerRadius(function(d) { return promien })
+        .outerRadius(function(d) { return promien2 });
+
+        var vis = d3.select("#clock").append("svg:svg")
+        .attr("width", w)
+        .attr("height", h)
+        .append("svg:g")
+        .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")");
+        
+        vis.append("svg:path")
+        .style("fill", "#000000")
+        .attr("d", arc);
+        
+        var kreski_warstwa = vis.selectAll("g")
+        .data(kreski)
+        .enter()
+        .append("svg:line")
+        .attr('x1', 0)
+        .attr('y1', promien)
+        .attr('x2', 0)
+        .attr('y2', promien * 0.9)
+        .style('stroke', 'rgb(0,0,0)')
+        .style('stroke-width', '1')
+        .attr("transform", function(d) {
+            return "rotate("+ d.angle  + "," + 0 +"," + 0 +" )";
+        })
+        
+        var g = vis.selectAll("g")
+        .data(fields)
+        .enter().append("svg:g")
+        .attr("transform", function(d) {
+            return "rotate("+ d.angle  + "," + 0 +"," + 0 +" )";
+        });
+               
+        g.append("svg:line")
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', 0)
+        .attr('y2', function(d) {
+            return -1 * d.length * r;
+        })
+        .style('stroke', function(d,i) {
+            return (i == 0) ? 'rgb(255,0,0)' : 'rgb(0,0,0)';
+        })
+        .style('stroke-width', '2');
+    
+        // Update arcs.
+        d3.timer(function() {
+            var f = fields();
+            var g = vis.selectAll("g")
+            .data(f)
+            .attr("transform", function(d) {
+                return "rotate("+ d.angle  + "," + 0 +"," + 0 +" )";
+            });
+        });
+        
+        function kreski() {
+            var ret = [];
+            for (var i = 1; i <= 12; i++) {
+                var obj = new Object();
+                obj.angle = i * 30;
+                ret.push(obj);
+            }
+            return ret;
+        }
+
+        // Generate the fields for the current date/time.
+        function fields() {
+            var d = new Date;
+            var second = d.getSeconds() + (d.getMilliseconds() / 1000) / 60,
+            minute = d.getMinutes() + (second) / 60,
+            hour = d.getHours() + (minute) / 24;
+            
+            return [
+                {value: second, length: 1.2, angle: Number(fsecS(d)) * 6, text: fsec(d)},
+                {value: minute, length: 1.2, angle: Number(fminS(d)) * 6, text: fmin(d)},
+                {value: hour, length: 0.8, angle: (Number(fhouS(d)) % 12  + (Number(fminS(d)) / 60)) * 30,  text: fhou(d)}
+            ];
+        }
+        
+    </script>    
+</div>

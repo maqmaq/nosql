@@ -1,0 +1,26 @@
+<div id="maincolumn">
+    <div class="city-info">
+        <p>Miasto: {{ nazwa }}</p>
+        <p>Szerokość geograficzna: {{ szerokosc }}</p>
+        <p>Dlugość geograficzna: {{ dlugosc }}</p>
+        <p>Liczba ludności: {{ ludnosc }}</p>
+        <p><a href="{{ link }}" target="_blank">więcej informacji (w nowym oknie)</a></p>
+        <div id="map_canvas" style="width:400px; height:300px"></div>
+
+        <script type="text/javascript">
+             
+            function initialize(lat, long) {
+                var myLatlng = new google.maps.LatLng(lat, long);
+                var myOptions = {
+                    zoom: 13,
+                    center: myLatlng,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                }
+                var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+                var latlng = new google.maps.LatLng(parseFloat(lat),
+                parseFloat(long));
+                var marker = new google.maps.Marker({position: latlng, map: map});
+            }
+            
+            $(initialize(zmienJednostke('{{ szerokosc }}'), zmienJednostke('{{ dlugosc }}')));
+        </script></div></div>
